@@ -31,7 +31,6 @@ def make_pred(images,
               image_names):
     detector = Detector(device="cpu")
     aus_df = pd.DataFrame()
-    print(path)
     for i in range(len(image_names)):
         label = images[1][i]
         file = [path + image_names[i]]
@@ -68,8 +67,6 @@ def make_pred(images,
         
 
     file_path_csv = "./processed/" + label + '_aus.csv'
-    print('save file')
-    print('file_path_csv')
     aus_df.to_csv(Path(file_path_csv)) 
 
 if __name__ == "__main__":
