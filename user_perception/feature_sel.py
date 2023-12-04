@@ -10,22 +10,23 @@ def read_aus_files():
     for file in Path(path_aus).iterdir():
         if not file.is_file():
             continue
-        aus_df = pd.read_csv(file)
-        print(aus_df.head())
-        all_aus = pd.concat([aus_df, all_aus]).reset_index(drop=True)
-    
+        if 'csv' in str(file):
+            aus_df = pd.read_csv(file)
+            all_aus = pd.concat([aus_df, all_aus]).reset_index(drop=True)
     all_aus = all_aus.drop(columns='Unnamed: 0')
+    return all_aus
 
+def valence_plot(df):
     #read dataset_sheet with info about valence
     path_datasheet = Path("./DiffusionFER/DiffusionEmotion_S/dataset_sheet.csv")
     df_valence = pd.read_csv(path_datasheet)
 
     df_valence['file_name'] = df_valence['subDirectory_filePath'].apply(lambda x: x.split('/')[-1])
-    joined_df = all_aus.merge(df_valence, 
-                              left_on = 'file', 
-                              right_on='file_name', 
-                              validate='one_to_one', 
-                              how='inner')
+    joined_df = df.merge(df_valence, 
+                        left_on = 'file', 
+                        right_on='file_name', 
+                        validate='one_to_one', 
+                        how='inner')
     
     filt_neg = joined_df['valence'] < 0
     filt_pos = joined_df['valence'] > 0
@@ -59,4 +60,5 @@ def read_aus_files():
     plt.show()
 
 if __name__ == "__main__":
-    read_aus_files()
+    df = read_aus_files()
+    valence_plot(df)
