@@ -9,8 +9,8 @@ import os
 import pandas as pd
 from feat.utils import FEAT_EMOTION_COLUMNS
 
-def load_data():
-    path_name = "./DiffusionFER/DiffusionEmotion_S/cropped/"
+def load_data(folder):
+    path_name = "./DiffusionFER/DiffusionEmotion_S/" + folder + '/'
     subfolders = [ f.name for f in os.scandir(path_name) if f.is_dir()]
 
     for emotion in subfolders:
@@ -23,12 +23,16 @@ def load_data():
             images[0].append(iio.imread(file))
             images[1].append(emotion)
         image_names = os.listdir(path)
-        make_pred(images, path, image_names)
+        make_pred(images, 
+                  path, 
+                  image_names, 
+                  folder)
     return
 
 def make_pred(images, 
               path, 
-              image_names):
+              image_names,
+              folder):
     detector = Detector(device="cpu")
     aus_df = pd.DataFrame()
     for i in range(len(image_names)):
@@ -58,7 +62,7 @@ def make_pred(images,
                         (x, y), 
                         (x + width, y + height), 
                         (0, 255, 0), 2)  
-            images_dir = "./processed/images/" 
+            images_dir = "./processed/" + folder + "/images/" 
 
             #save the test plots to processes/images
             if not os.path.exists(Path(images_dir)):
@@ -66,8 +70,8 @@ def make_pred(images,
             iio.imwrite(Path(images_dir + image_names[i]), frame)
         
 
-    file_path_csv = "./processed/" + label + '_aus.csv'
+    file_path_csv = "./processed/" + folder + '/' + label + '_aus.csv'
     aus_df.to_csv(Path(file_path_csv)) 
 
 if __name__ == "__main__":
-    load_data()
+    load_data('cropped')

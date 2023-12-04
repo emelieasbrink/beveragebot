@@ -3,8 +3,8 @@ from matplotlib import pyplot as plt
 import pandas as pd
 import os
 
-def read_aus_files():
-    path_aus = "./processed/"
+def read_aus_files(folder='cropped'):
+    path_aus = "./processed/" + folder + '/'
     all_aus = pd.DataFrame()
 
     for file in Path(path_aus).iterdir():
@@ -13,7 +13,8 @@ def read_aus_files():
         if 'csv' in str(file):
             aus_df = pd.read_csv(file)
             all_aus = pd.concat([aus_df, all_aus]).reset_index(drop=True)
-    all_aus = all_aus.drop(columns='Unnamed: 0')
+    if 'Unnamed: 0' in all_aus.columns:
+        all_aus = all_aus.drop(columns='Unnamed: 0')
     return all_aus
 
 def valence_plot(df):
@@ -55,7 +56,7 @@ def valence_plot(df):
     plt.xticks(rotation=45)
 
     #save fig
-    plt.savefig(Path("./processed/au_visualization.png"), dpi=300, bbox_inches='tight')
+    plt.savefig(Path("./processed/cropped/au_visualization.png"), dpi=300, bbox_inches='tight')
     # Display the plot
     plt.show()
 
