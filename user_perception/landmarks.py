@@ -67,7 +67,7 @@ def make_pred_landmarks(images, path, image_names):
                     os.makedirs(Path(images_dir))
                 iio.imwrite(Path(images_dir + image_names[i]), frame)
 
-    file_path_csv = "./processed/" + label + '_landmark.csv'
+    file_path_csv = "./processed/landmarksCsv/" + label + '_landmark.csv'
     landmark_df.to_csv(Path(file_path_csv), index=False)
     
     print(landmark_df)
