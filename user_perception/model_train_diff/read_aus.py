@@ -47,3 +47,14 @@ def read_both_datsets():
     diff_df.drop(columns='emotion', inplace=True)
     df = pd.concat([diff_df, multi_df]).reset_index(drop=True)
     return df
+
+def prepare_features(df, pca):
+    pca_df = pca.transform(df)
+    pca_df = pd.DataFrame(pca_df, columns=['C_1', 
+                                           'C_2', 
+                                           'C_3', 
+                                           'C_4', 
+                                           'C_5', 
+                                           'C_6',
+                                           'C_7'])
+    return pca_df

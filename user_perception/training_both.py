@@ -15,10 +15,8 @@ warnings.filterwarnings('ignore')
 
 def split_train_test():
     df = read_both_datsets()
-    print(df)
     labels = df['label']
     features = valence_plot('both')
-    au_columns = [col for col in df.columns if 'AU' in col]
     inputs = df[features.index]
     X, X_test, y, y_test = train_test_split(inputs, 
                                             labels, 

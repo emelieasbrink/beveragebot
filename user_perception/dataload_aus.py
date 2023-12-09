@@ -9,6 +9,7 @@ import os
 import pandas as pd
 from feat.utils import FEAT_EMOTION_COLUMNS
 
+
 def df_to_csv(df,
               path):
     if os.path.exists(path):
@@ -82,54 +83,56 @@ def make_pred(images,
     if Diff:
         dataset= 'Diffusion/' + folder
     else:
-        dataset='Multi'
+        dataset='Multi/'
+
+    dir = "./processed/" + dataset 
+    if not os.path.exists(Path(dir)):
+        os.makedirs(Path(dir))
     
     for i in range(len(image_names)):
         label = images[1][i]
         file = [path + image_names[i]]
         prediction = detector.detect_image(file)
-        for index, row in prediction.iterrows():
-            df = pd.DataFrame(row.aus).transpose()
-            if(df.isnull().any().any()):
-                print('no face detected')
-                continue
-            df['file'] = image_names[i].replace(".jpg","",1)
-            df['face'] = index
-            df['label'] = label
-            aus_df = pd.concat([aus_df, df]).reset_index(drop=True)
         
-            if (i < 5):
-                #test plotting some images for evaluation
-                emotion = row[FEAT_EMOTION_COLUMNS].idxmax()
-                x = int(row['FaceRectX'])
-                y = int(row['FaceRectY'])
-                width = int(row['FaceRectWidth'])
-                height = int(row['FaceRectHeight'])
+        frame = None
+        if (prediction.shape[0] < 10):
+            for index, row in prediction.iterrows():
+                df = pd.DataFrame(row.aus).transpose()
+                if(df.isnull().any().any()):
+                    print('no face detected')
+                    continue
+                df['file'] = image_names[i].replace(".jpg","",1)
+                df['face'] = index
+                df['label'] = label
+                aus_df = pd.concat([aus_df, df]).reset_index(drop=True)
+            
+                if (i < 5):
+                    #test plotting some images for evaluation
+                    emotion = row[FEAT_EMOTION_COLUMNS].idxmax()
+                    x = int(row['FaceRectX'])
+                    y = int(row['FaceRectY'])
+                    width = int(row['FaceRectWidth'])
+                    height = int(row['FaceRectHeight'])
 
-                frame = images[0][i]
-                cv2.putText(frame, emotion, (x, y - 10 ), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-                cv2.rectangle(frame, 
-                            (x, y), 
-                            (x + width, y + height), 
-                            (0, 255, 0), 2)  
+                    frame = images[0][i]
+                    cv2.putText(frame, emotion, (x, y - 10 ), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                    cv2.rectangle(frame, 
+                                (x, y), 
+                                (x + width, y + height), 
+                                (0, 255, 0), 2)  
 
-        images_dir = "./processed/" + dataset + "/images/" 
+            images_dir = "./processed/" + dataset + "/images/" 
 
-        #save the test plots to processes/images
-        if not os.path.exists(Path(images_dir)):
-            os.makedirs(Path(images_dir))
-        if (i < 5):
-            iio.imwrite(Path(images_dir + image_names[i]), frame)
+            #save the test plots to processes/images
+            if not os.path.exists(Path(images_dir)):
+                os.makedirs(Path(images_dir))
+            if (i < 5 and frame is not None):
+                iio.imwrite(Path(images_dir + image_names[i]), frame)
         
 
-    file_path_csv = "./processed/" + dataset + '/' + label + '_aus.csv'
+    file_path_csv = "./processed/" + dataset + label + '_aus.csv'
     df_to_csv(aus_df, 
               Path(file_path_csv))
 
 if __name__ == "__main__":
-    load_data("./DiffusionFER/DiffusionEmotion_S/original/", 
-              'original', 
-              True)
-    load_data("./DiffusionFER/DiffusionEmotion_S/cropped/", 
-            'cropped', 
-            True)
+    load_data("./MultiEmoVA/", Diff=False)

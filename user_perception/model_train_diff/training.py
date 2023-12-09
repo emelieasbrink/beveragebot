@@ -7,6 +7,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestClassifier
 import sklearn.discriminant_analysis as skl_da
+from joblib import dump, load
 
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -31,7 +32,7 @@ def both_cropped_and_full_split():
     label = merged['label'].reset_index(drop=True)
 
     pca = PCA(n_components=7)
-    pca_df = pca.fit_transform(merged.drop(columns=['file', 'label', 'emotion', 'face']))
+    pca_df = pca.fit_transform(merged.drop(columns=['file','label', 'emotion', 'face', 'valence']))
     pca_df = pd.DataFrame(pca_df, columns=['C_1', 
                                            'C_2', 
                                            'C_3', 
@@ -63,13 +64,14 @@ def both_cropped_and_full_split():
     y_val = val_df['label']
     X_test = test_df.drop(columns=['file', 'label'])
     y_test = test_df['label']
-    return X_train, X_val, y_train, y_val, X_test, y_test
+    return X_train, X_val, y_train, y_val, X_test, y_test, pca
 
 def one_folder_split(path):
     df = read_aus_files(path)
     df = calculate_valence(df)
     labels = df['label']
-    inputs = df.drop(columns=['file','label', 'emotion'])
+    inputs = df.drop(columns=['file','label', 'emotion', 'face', 'valence'])
+    print(inputs.columns)
 
 
     pca = PCA(n_components=7)
@@ -92,11 +94,11 @@ def one_folder_split(path):
                                                       y, 
                                                       test_size=(0.2/0.9), 
                                                       stratify=y)
-    return train_x, val_x, train_y, val_y, X_test, y_test
+    return train_x, val_x, train_y, val_y, X_test, y_test, pca
 
 def train_model(path):
     
-    train_x, val_x, train_y, val_y, X_test, y_test = split_train_test(path)
+    train_x, val_x, train_y, val_y, X_test, y_test, pca = split_train_test(path)
 
     model_qda = skl_da.QuadraticDiscriminantAnalysis()
 
@@ -137,22 +139,20 @@ def train_model(path):
 
     if acc_svm > acc_qda:
         svm_test = svm_best.predict(X_test)
+        model = svm_best
         acc = np.mean(svm_test==y_test)
 
     else:
         qda_test = qda_best.predict(X_test)
+        model = qda_best
         acc = np.mean(qda_test==y_test)
-    return acc
+    return [acc, model, pca]
 
 if __name__ == "__main__":
     cropped = train_model("./processed/Diffusion/cropped/")
     full = train_model("./processed/Diffusion/original/")
     both = train_model('both')
-    print('cropped')
-    print(cropped)
 
-    print('full')
-    print(full)
-
-    print('both')
-    print(both)
+    dump(full[1], './user_perception/model_train_diff/model.joblib') 
+    dump(full[2], './user_perception/model_train_diff/pca.joblib') 
+    print(full[0])
