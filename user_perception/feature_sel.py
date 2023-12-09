@@ -2,45 +2,31 @@ from pathlib import Path
 from matplotlib import pyplot as plt
 import pandas as pd
 import os
+from model_train_diff.read_aus import read_aus_files, calculate_valence, read_both_datsets 
 
-def read_aus_files(folder='cropped'):
-    path_aus = "./processed/" + folder + '/'
-    all_aus = pd.DataFrame()
 
-    for file in Path(path_aus).iterdir():
-        if not file.is_file():
-            continue
-        if 'csv' in str(file):
-            aus_df = pd.read_csv(file)
-            all_aus = pd.concat([aus_df, all_aus]).reset_index(drop=True)
-    if 'Unnamed: 0' in all_aus.columns:
-        all_aus = all_aus.drop(columns='Unnamed: 0')
-    return all_aus
+def valence_plot(dataset):
+    if dataset == 'both':
+        df = read_both_datsets()
+    elif dataset == "./processed/Diffusion/cropped/":
+        df = read_aus_files(dataset)
+        df = calculate_valence(df)
+    elif dataset == "./processed/Multi/":
+        df = read_aus_files(dataset)
 
-def valence_plot(df):
-    #read dataset_sheet with info about valence
-    path_datasheet = Path("./DiffusionFER/DiffusionEmotion_S/dataset_sheet.csv")
-    df_valence = pd.read_csv(path_datasheet)
-
-    df_valence['file_name'] = df_valence['subDirectory_filePath'].apply(lambda x: x.split('/')[-1])
-    joined_df = df.merge(df_valence, 
-                        left_on = 'file', 
-                        right_on='file_name', 
-                        validate='one_to_one', 
-                        how='inner')
+    au_columns = [col for col in df.columns if 'AU' in col]
     
-    filt_neg = joined_df['valence'] < 0
-    filt_pos = joined_df['valence'] > 0
+    #filt_neg = valence_df['valence'] < 0
+    #filt_pos = valence_df['valence'] > 0
+    filt_neg = df['label'] == 'negative'
+    filt_pos = df['label'] == 'positive'
 
-    columns_to_drop = ['subDirectory_filePath', 
-                       'arousal', 
-                       'expression', 
-                       'file', 
+    columns_to_drop = ['file', 
                        'label',
                        'valence',
-                       'file_name']
-    neg_valence = joined_df[filt_neg].drop(columns=columns_to_drop)
-    pos_valence = joined_df[filt_pos].drop(columns=columns_to_drop)
+                       'face']
+    neg_valence = df[filt_neg][au_columns]
+    pos_valence = df[filt_pos][au_columns]
 
 
     #calculate mean
@@ -56,10 +42,16 @@ def valence_plot(df):
     plt.xticks(rotation=45)
 
     #save fig
-    plt.savefig(Path("./processed/cropped/au_visualization.png"), dpi=300, bbox_inches='tight')
+    if dataset == 'both':
+        plt.savefig(Path("./processed/au_visualization.png"), dpi=300, bbox_inches='tight')
+    else:
+        plt.savefig(Path(dataset + "au_visualization.png"), dpi=300, bbox_inches='tight')
     # Display the plot
-    plt.show()
+    #plt.show()
+
+    features = abs_dif[abs_dif > 0.1]
+    return features
 
 if __name__ == "__main__":
-    df = read_aus_files()
-    valence_plot(df)
+    valence_plot('both')
+    plt.show()
