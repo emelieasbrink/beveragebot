@@ -1,7 +1,7 @@
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn import svm
 import numpy as np
-from model_train_diff.read_aus import read_aus_files, calculate_valence, read_both_datsets 
+from read_aus import read_aus_files, calculate_valence, read_both_datsets 
 import pandas as pd
 from sklearn.metrics import accuracy_score
 from sklearn.decomposition import PCA
@@ -13,11 +13,25 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.filterwarnings('ignore')
 
-def split_train_test():
+def split_train_test_both_datasets(feature_sel):
     df = read_both_datsets()
     labels = df['label']
-    features = valence_plot('both')
-    inputs = df[features.index]
+    if feature_sel == 'val':
+        features = valence_plot('both')
+        inputs = df[features.index]
+    else:
+        x_df = df.drop(columns=['file','label', 'face', 'valence'])
+
+        pca = PCA(n_components=7)
+        inputs = pca.fit_transform(x_df)
+        inputs = pd.DataFrame(inputs, columns=['C_1', 
+                                               'C_2', 
+                                               'C_3', 
+                                               'C_4', 
+                                               'C_5', 
+                                               'C_6',
+                                               'C_7'])
+
     X, X_test, y, y_test = train_test_split(inputs, 
                                             labels, 
                                             test_size=0.1, 
@@ -30,9 +44,9 @@ def split_train_test():
     return train_x, val_x, train_y, val_y, X_test, y_test
 
 
-def train_model():
+def train_model(feature_sel='pca'):
     
-    train_x, val_x, train_y, val_y, X_test, y_test = split_train_test()
+    train_x, val_x, train_y, val_y, X_test, y_test = split_train_test_both_datasets(feature_sel)
 
     model_qda = skl_da.QuadraticDiscriminantAnalysis()
 
@@ -82,5 +96,6 @@ def train_model():
     return acc
 
 if __name__ == "__main__":
+    #split_train_test_both_datasets('val')
     acc = train_model()
     print(acc)

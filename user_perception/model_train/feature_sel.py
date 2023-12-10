@@ -2,7 +2,7 @@ from pathlib import Path
 from matplotlib import pyplot as plt
 import pandas as pd
 import os
-from model_train_diff.read_aus import read_aus_files, calculate_valence, read_both_datsets 
+from read_aus import read_aus_files, calculate_valence, read_both_datsets 
 
 
 def valence_plot(dataset):

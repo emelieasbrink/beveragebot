@@ -3,7 +3,7 @@ import opencv_jupyter_ui as jcv2
 from feat import Detector
 from IPython.display import Image
 import numpy as np
-from model_train_diff.read_aus import prepare_features
+from model_train.read_aus import prepare_features
 from joblib import dump, load
 import time
 import pandas as pd
