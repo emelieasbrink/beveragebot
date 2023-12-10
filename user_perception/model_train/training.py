@@ -17,23 +17,6 @@ warnings.filterwarnings('ignore')
 """This is the main file for training the model. The only function that needs to be called is the train_model function 
 which uses the other functions as help."""
 
-def get_predictions(probabilities):
-    """Custom thresholds in classification instead of using maximum probability"""
-    custom_thresholds = [0.4, 0.2, 0.4]
-    pred = []
-
-    for prob in probabilities:
-        # Check custom thresholds for each class
-        if prob[0] > custom_thresholds[0]:
-            predicted_label = "positive"
-        elif prob[2] > custom_thresholds[2]:
-            predicted_label = "negative"
-        else:
-            predicted_label = "neutral"  
-
-        pred.append(predicted_label)
-    return pred
-
 def both_datasets(feature_sel):
     """
     Read data from both DiffusionFER (full) and MultiEmoVA and split in train and test
@@ -82,8 +65,6 @@ def both_cropped_and_full_split():
     and splits the dataset into train, val and test datasets (70/20/10). 
     This is done so that the same image from cropped and full end upp in the same dataset to not overestimate performance."""
 
-    #df_full = read_aus_files('full')
-    #df_cropped = read_aus_files('cropped')
     df_full = read_aus_files("./processed/Diffusion/original/")
     df_full = calculate_valence(df_full)
     df_cropped = read_aus_files("./processed/Diffusion/cropped/")
@@ -180,7 +161,8 @@ def train_model(path='',
     States if dimension reductions should be done with pca or feature selection from valence calculations (see feature_sel).
 
     """
-    
+    models = []
+
     if only_diff:
         train_x, val_x, train_y, val_y, X_test, y_test, pca = split_train_test_diff(path)
     else:
@@ -207,12 +189,8 @@ def train_model(path='',
     qda_best = CV_qda.best_estimator_
     qda_pred = qda_best.predict(val_x)
 
-    #qda_y = get_predictions(qda_pred)
-
-    # Evaluate the model with your custom thresholds
     acc_qda = accuracy_score(val_y, qda_pred)
-
-    #acc_qda = np.mean(qda_pred==val_y)
+    models.append([acc_qda, qda_best, X_test, y_test, pca])
 
     #cv is used to finetune and compare models
     param_grid = [
@@ -225,22 +203,16 @@ def train_model(path='',
                             cv=5,
                             verbose = 2)
     CV_svm.fit(train_x,train_y)
-    print("Class Labels:", CV_svm.classes_)
-    # Get the mean test scores (validation accuracy)
+
+    # Get the validation accuracy
     svm_best = CV_svm.best_estimator_
     svm_pred = svm_best.predict(val_x)
-    #acc_svm = np.mean(svm_pred==val_y)
-    #svm_pred = svm_best.predict_proba(val_x)
-
-   # svm_y = get_predictions(svm_pred)
-
-    # Evaluate the model with your custom thresholds
     acc_svm = accuracy_score(val_y, svm_pred)
+    models.append([acc_svm, svm_best, X_test, y_test, pca])
 
-    if acc_svm > acc_qda:
-        return [acc_svm, svm_best, X_test, y_test, pca]
-    else:
-        return [acc_qda, qda_best, X_test, y_test, pca]
+    # Return best model
+    best_model = max(models, key=lambda x: x[0])
+    return best_model
 
 if __name__ == "__main__":
     """
@@ -256,15 +228,17 @@ if __name__ == "__main__":
     cropped = train_model("./processed/Diffusion/cropped/")
     full = train_model("./processed/Diffusion/original/")
     both = train_model('both')
-    both_datasets = train_model(only_diff=False)
+    both_data = train_model(only_diff=False)
 
     cropped.append('cropped')
     full.append('full')
     both.append('both')
+    both_data.append('both datasets')
 
     all_models = [cropped,
                   full, 
-                  both]
+                  both,
+                  both_data]
 
     # Find the list with the maximum accuracy 
     best_model = max(all_models, key=lambda x: x[0])
@@ -273,10 +247,8 @@ if __name__ == "__main__":
 
     #get test accuracy
     test_y = best_model[1].predict(best_model[2])
-    #test_y = get_predictions(test_prob)
     acc_test = accuracy_score(best_model[3], test_y)
-    print(acc_test)
-
+    print('test accuracy', acc_test)
 
     dump(best_model[1], './user_perception/model_train/model.joblib') 
     dump(best_model[4], './user_perception/model_train/pca.joblib') 
