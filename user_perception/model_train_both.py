@@ -13,7 +13,6 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.filterwarnings('ignore')
 
-
 df_full = read_aus_files('full')
 df_cropped = read_aus_files('cropped')
 print(df_full.shape)
@@ -39,8 +38,8 @@ names = pca_df['file'].unique()
 np.random.shuffle(names)
 
 image_names_train, image_names_test = train_test_split(names, 
-                                                       test_size=0.1, 
-                                                       random_state=random_state)
+                                                       test_size=0.1)
+                                                      # random_state=random_state)
 
 # Create training and testing sets based on the split image names
 train_df = pca_df[pca_df['file'].isin(image_names_train)]
