@@ -14,6 +14,9 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.filterwarnings('ignore')
 
+"""This is the main file for training the model. The only function that needs to be called is the train_model function 
+which uses the other functions as help."""
+
 def get_predictions(probabilities):
     """Custom thresholds in classification instead of using maximum probability"""
     custom_thresholds = [0.4, 0.2, 0.4]
@@ -74,6 +77,11 @@ def split_train_test_diff(folder):
     return one_folder_split(folder)
 
 def both_cropped_and_full_split():
+    """When training on both cropped and full images in the DiffusionFER dataset, 
+    this function is used which loads both datasets, does dimension reduction with pca 
+    and splits the dataset into train, val and test datasets (70/20/10). 
+    This is done so that the same image from cropped and full end upp in the same dataset to not overestimate performance."""
+
     #df_full = read_aus_files('full')
     #df_cropped = read_aus_files('cropped')
     df_full = read_aus_files("./processed/Diffusion/original/")
@@ -122,6 +130,11 @@ def both_cropped_and_full_split():
     return X_train, X_val, y_train, y_val, X_test, y_test, pca
 
 def one_folder_split(path):
+    """
+    When training on only one of the full or the cropped images in DiffusionFER, 
+    this function is used to split the data into train, val and test datasets (70/20/10).
+    Before pca is used as dimension reduction method.
+    """
     df = read_aus_files(path)
     df = calculate_valence(df)
     labels = df['label']
@@ -154,6 +167,19 @@ def one_folder_split(path):
 def train_model(path='', 
                 only_diff = True, 
                 feature_sel = 'pca'):
+    """
+    This is the main function which preforms the training of the model. 
+    It calls the above function for splitting into train, val and testset.
+    It returns an array with the following values: [validation accuracy, best model, X_test, y_test, pca]
+    
+    Arguments:
+    path - ["./processed/Diffusion/cropped/", "./processed/Diffusion/original/", 'both']. 
+    Only used for training on DiffusionFER, states the path tp the images or both if full and cropped images should be used.
+    only_diff - True if only train on DiffusionFER, False if train on both DiffusionFER and MultiEmoVA
+    feature_sel - ['pca', 'val'], only relevant if training on both MultiEmoVA and DiffusionFER. 
+    States if dimension reductions should be done with pca or feature selection from valence calculations (see feature_sel).
+
+    """
     
     if only_diff:
         train_x, val_x, train_y, val_y, X_test, y_test, pca = split_train_test_diff(path)
@@ -217,6 +243,16 @@ def train_model(path='',
         return [acc_qda, qda_best, X_test, y_test, pca]
 
 if __name__ == "__main__":
+    """
+    Trains model on
+    - cropped DiffusionFER images
+    - original DiffusionFEr images
+    - both cropped and orginal DiffusionFER images
+    - both original DiffisonFER images and MultiEmoVA dataset
+
+    Finds the model with the best validation accuracy, prints the test accuracy.
+    Saves the model and pca model to './user_perception/model_train/'
+    """
     cropped = train_model("./processed/Diffusion/cropped/")
     full = train_model("./processed/Diffusion/original/")
     both = train_model('both')
