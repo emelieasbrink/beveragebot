@@ -46,12 +46,36 @@ def create_keywords_dict():
     return keywords_dict
 
 def create_responses():
-    # Building a dictionary of responses
-    responses={
-        'greet':'Hello! Welcome to my bar. What kind of drinks do you like?',
-        'sweet drink':'Maybe a Mojito?',
-        'sour drink' : 'What do you think about a Lime coctail?',        
-        'fallback': ['I dont quite understand. Could you repeat that?','?','Sorry, can you specify?','I dont understand, can you repeat?','I beg you pardon, please come again','Please repeat what you said'],
-        'goodbye' : 'Nice to meet you! Goodbye',
+# Building a dictionary of responses
+    responses = {
+    'greet': {
+        'natural_responses': ['Hello! Welcome to my bar. What kind of drinks do you like?'],
+        'positive_responses': ['Hey there! Excited to serve your happy face. Whats your drink of choice'],
+        'negative_responses': ['Hi. You look moody. If youre unsure, I can recommend something. What do you prefer']
+    },
+    'sweet drink': {
+        'natural_responses': ['Maybe a Mojito?'],
+        'positive_responses': ['A Mojito could be perfect for your taste buds!'],
+        'negative_responses': ['Have you considered a sweeter option than your mood, like a Mojito?']
+        },
+    'sour drink': {
+        'natural_responses': ['What do you think about a Lime cocktail?'],
+        'positive_responses': ['A Lime cocktail could add a zing to your already positive evening!'],
+        'negative_responses': ["You look like you need something strong to bring up the mood, consider a Lime cocktail."]
+    },
+    'fallback': {
+         'fallback_responses': [
+              'I dont quite understand. Could you repeat that?',
+              'Sorry, can you specify?',
+              'I dont understand, can you repeat?',
+              'I beg your pardon, please come again',
+              'Please repeat what you said'
+        ]
+    },
+    'goodbye': {
+        'natural_responses': ['Nice to meet you! Goodbye'],
+        'positive_responses': ['You look Happy!Enjoy the bar! Goodbye'],
+        'negative_responses': ['Bye you negative person, Come back if you want another drink']
+    }
     }
     return responses
