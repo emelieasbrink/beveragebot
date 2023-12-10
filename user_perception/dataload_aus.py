@@ -12,6 +12,17 @@ from feat.utils import FEAT_EMOTION_COLUMNS
 
 def df_to_csv(df,
               path):
+    
+    """
+    Writes a dataframe to a csv file. 
+    If file exists it adds the dataframe to the existing file. 
+    If it does not exist it creates a new file and adds the dataframe.
+    
+    Arguments: 
+    df - dataframe to add to csv file
+    path - path for csv file to be stored
+    """
+
     if os.path.exists(path):
         existing_data = pd.read_csv(path)
         combined_data = pd.concat([existing_data, df], ignore_index=True)
@@ -22,6 +33,8 @@ def df_to_csv(df,
                   index=False)
     
 def find_label_degree(degree):
+    """Converts labels in MultiEmoVA into only positive, negative and neutral"""
+
     if 'positive' in degree.lower():
         return('positive')
     elif 'neutral' in degree.lower():
@@ -30,6 +43,13 @@ def find_label_degree(degree):
         return('neutral')
     
 def load_both_datasets(folder):
+    """
+    Calls functions that load data.
+    folder can take three arguments ['all', 'cropped', 'original']
+    If the argument is all it reads but cropped and orginal images from DiffusionFER, 
+    Otherwise it only reads files from the stated folder.
+    """
+
     if folder == 'all':
         load_data("./DiffusionFER/DiffusionEmotion_S/original/", 
               'original', 
@@ -48,6 +68,16 @@ def load_both_datasets(folder):
 def load_data(path_name,
               folder = 'cropped',
               Diff = True):
+    """
+    Loads images from path, calls make_pred to detect faces and store action units. 
+    Takes the following arguments:
+    path_name - ['./DiffusionFER/DiffusionEmotion_S/original/', 
+                "./DiffusionFER/DiffusionEmotion_S/cropped/",
+                "./MultiEmoVA/"] depending on which images to load
+    folder - ['cropped', 'full'], default is cropped. Only relevant for the diffusionFER dataset and states the name of the folder that contains the images.
+    Diff - [True, False], default it True. States if the data is loaded from the diffusionFER dataset or not. 
+    """
+
     subfolders = [ f.name for f in os.scandir(path_name) if f.is_dir()]
 
     for emotion in subfolders:
@@ -78,6 +108,11 @@ def make_pred(images,
               image_names,
               folder,
               Diff):
+    """
+    Called from load_dataset. 
+    Detects faces in images and store them is aus files in the directory processed. 
+    Also saves 5 images from each label to be able to see if the face detecting works as intended. 
+    """
     detector = Detector(device="cpu")
     aus_df = pd.DataFrame()
     if Diff:
