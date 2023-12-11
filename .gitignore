@@ -164,6 +164,5 @@ cython_debug/
 
 #Ignore data
 DiffusionFER/
-MultiEmoVA/
 
 shape_predictor_68_face_landmarks_GTX.dat
