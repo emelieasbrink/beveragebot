@@ -3,7 +3,8 @@ from furhat_remote_api import FurhatRemoteAPI
 import dictionary as dict
 import re
 import random
-FURHAT_IP = "192.168.1.125"
+
+FURHAT_IP = "130.243.218.200"
 
 furhat = FurhatRemoteAPI(FURHAT_IP)
 furhat.set_led(red=100, green=50, blue=50)
@@ -62,8 +63,8 @@ def suggest_drink(emotion, answer):
         bsay("Mabye a water?")
     
 def handle_emotional_state(): ##Detta ska kombineras me 
-    set_gesture("BigSmile")
-    return "positive"
+    set_gesture("ExpressSad")
+    return "negative"
     
 
 def generate_response(responses_dict,keywords_dict,response,customer_feeling):
@@ -83,8 +84,8 @@ def generate_response(responses_dict,keywords_dict,response,customer_feeling):
                 bsay(random.choice(responses_dict[key]['positive_responses']))
             elif customer_feeling == 'negative' and 'negative_responses' in responses_dict[key]:
                 bsay(random.choice(responses_dict[key]['negative_responses']))
-            elif customer_feeling == 'natural' and 'natural_responses' in responses_dict[key]:
-                bsay(random.choice(responses_dict[key]['natural_responses']))
+            elif customer_feeling == 'neutral' and 'neutral_responses' in responses_dict[key]:
+                bsay(random.choice(responses_dict[key]['neutral_responses']))
         else:
             set_gesture("Oh")
             set_gesture("BrowRaise")
@@ -96,7 +97,7 @@ def demo_bartender():
     responses_dict = dict.create_responses()
     keywords_dict = dict.create_keywords_dict()
 
-    bsay("hej")
+    bsay("hi there")
     while(True):
         response = furhat.listen() 
         costumer_feeling = handle_emotional_state() 
