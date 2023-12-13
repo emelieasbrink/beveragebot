@@ -160,4 +160,3 @@ def create_responses():
     }
     return responses
 
-print(create_keywords_dict())
