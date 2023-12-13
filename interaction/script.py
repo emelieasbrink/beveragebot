@@ -1,10 +1,12 @@
 from time import sleep
 from furhat_remote_api import FurhatRemoteAPI
 import dictionary as dict
+from gestures import create_gestures
 import re
 import random
 
-FURHAT_IP = "130.243.218.200"
+FURHAT_IP = "130.243.218.200" # use 127.0.1.1 for Windows
+
 
 furhat = FurhatRemoteAPI(FURHAT_IP)
 furhat.set_led(red=100, green=50, blue=50)
@@ -63,11 +65,11 @@ def suggest_drink(emotion, answer):
         bsay("Mabye a water?")
     
 def handle_emotional_state(): ##Detta ska kombineras me 
-    set_gesture("ExpressSad")
-    return "negative"
+    #set_gesture("ExpressSad")
+    return "positive"
     
 
-def generate_response(responses_dict,keywords_dict,response,customer_feeling):
+def generate_response(responses_dict,keywords_dict,response,customer_feeling, gestures):
         print(response)
         matched_intent = None
 
@@ -81,14 +83,23 @@ def generate_response(responses_dict,keywords_dict,response,customer_feeling):
         if matched_intent in responses_dict:
             key = matched_intent
             if customer_feeling == 'positive' and 'positive_responses' in responses_dict[key]:
+                gesture = random.choice(gestures['positive'])
+                print(f"Furhat gesture: {gesture['name']}")
+                furhat.gesture(body=gesture)
                 bsay(random.choice(responses_dict[key]['positive_responses']))
             elif customer_feeling == 'negative' and 'negative_responses' in responses_dict[key]:
+                gesture = random.choice(gestures['negative'])
+                print(f"Furhat gesture: {gesture['name']}")
+                furhat.gesture(body=gesture)
                 bsay(random.choice(responses_dict[key]['negative_responses']))
             elif customer_feeling == 'neutral' and 'neutral_responses' in responses_dict[key]:
+                gesture = random.choice(gestures['neutral'])
+                print(f"Furhat gesture: {gesture['name']}")
+                furhat.gesture(body=gesture)
                 bsay(random.choice(responses_dict[key]['neutral_responses']))
         else:
-            set_gesture("Oh")
-            set_gesture("BrowRaise")
+            #set_gesture("Oh")
+            set_gesture("Thoughtful")
             bsay(random.choice(responses_dict[key].get('fallback_responses', []))) 
 
 
@@ -96,12 +107,13 @@ def demo_bartender():
     set_persona('Marty')
     responses_dict = dict.create_responses()
     keywords_dict = dict.create_keywords_dict()
+    gestures = create_gestures()
 
-    bsay("hi there")
+    bsay("Beveragebot activated, ready to serve")
     while(True):
         response = furhat.listen() 
         costumer_feeling = handle_emotional_state() 
-        generate_response(responses_dict,keywords_dict,response,costumer_feeling)
+        generate_response(responses_dict,keywords_dict,response,costumer_feeling, gestures)
 
 
 
