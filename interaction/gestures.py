@@ -6,7 +6,7 @@ def create_gestures():
     gestures = {
 
 # Neutral gestures #2
-        'natural': [
+        'neutral': [
         {
                 "name":"NeutralFace",
                 "frames" : 
