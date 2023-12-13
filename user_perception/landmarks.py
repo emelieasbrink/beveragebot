@@ -6,8 +6,8 @@ import os
 import imageio.v3 as iio
 
 
-def read_landmarks_files():
-    path_landmark = "./processed/"
+def read_landmarks_files(folder='landmarksCsv'):
+    path_landmark = "./processed/" + folder + '/'
     all_landmark = pd.DataFrame()
 
     for file in Path(path_landmark).iterdir():
@@ -16,7 +16,6 @@ def read_landmarks_files():
         if 'csv' in str(file):
             landmark_df = pd.read_csv(file)
             all_landmark = pd.concat([landmark_df, all_landmark]).reset_index(drop=True)
-    all_landmark = all_landmark.drop(columns='Unnamed: 0')
     return all_landmark
 
 def load_data():
@@ -37,9 +36,11 @@ def load_data():
     return
 
 def make_pred_landmarks(images, path, image_names):
-    detector = dlib.get_frontal_face_detector()
-    predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks_GTX.dat")  # Replace with the path to your shape predictor file
-
+    detector = dlib.get_frontal_face_detector() #detect the faces 
+    predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks_GTX.dat")  #detect landmarks
+    
+ 
+   
     landmark_df = pd.DataFrame()
     for i in range(len(image_names)):
         label = images[1][i]
@@ -72,6 +73,11 @@ def make_pred_landmarks(images, path, image_names):
     
     print(landmark_df)
     return landmark_df
+
+    
+    
+
+
 
 if __name__ == "__main__":
     load_data()
