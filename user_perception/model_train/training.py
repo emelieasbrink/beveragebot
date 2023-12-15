@@ -6,9 +6,12 @@ from read_aus import read_aus_files, read_aus_files, calculate_valence, read_bot
 from sklearn.metrics import accuracy_score
 from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import GradientBoostingRegressor
 import sklearn.discriminant_analysis as skl_da
 from joblib import dump, load
 from feature_sel import valence_plot
+from sklearn.metrics import mean_squared_error
 
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -42,6 +45,7 @@ def both_datasets(feature_sel):
                                                'C_5', 
                                                'C_6',
                                                'C_7'])
+        
 
     X, X_test, y, y_test = train_test_split(inputs, 
                                             labels, 
@@ -54,12 +58,13 @@ def both_datasets(feature_sel):
                                                       stratify=y)
     return train_x, val_x, train_y, val_y, X_test, y_test, pca
 
-def split_train_test_diff(folder):
+def split_train_test_diff(folder,
+                          label_name):
     if folder == 'both':
-        return both_cropped_and_full_split()
-    return one_folder_split(folder)
+        return both_cropped_and_full_split(label_name)
+    return one_folder_split(folder, label_name)
 
-def both_cropped_and_full_split():
+def both_cropped_and_full_split(label_name):
     """When training on both cropped and full images in the DiffusionFER dataset, 
     this function is used which loads both datasets, does dimension reduction with pca 
     and splits the dataset into train, val and test datasets (70/20/10). 
@@ -73,7 +78,7 @@ def both_cropped_and_full_split():
     merged = pd.concat([df_full, df_cropped])
 
     file = merged['file'].reset_index(drop=True)
-    label = merged['label'].reset_index(drop=True)
+    label = merged[label_name].reset_index(drop=True)
 
     pca = PCA(n_components=7)
     pca_df = pca.fit_transform(merged.drop(columns=['file','label', 'emotion', 'face', 'valence']))
@@ -110,7 +115,8 @@ def both_cropped_and_full_split():
     y_test = test_df['label']
     return X_train, X_val, y_train, y_val, X_test, y_test, pca
 
-def one_folder_split(path):
+def one_folder_split(path,
+                     label_name):
     """
     When training on only one of the full or the cropped images in DiffusionFER, 
     this function is used to split the data into train, val and test datasets (70/20/10).
@@ -118,9 +124,8 @@ def one_folder_split(path):
     """
     df = read_aus_files(path)
     df = calculate_valence(df)
-    labels = df['label']
+    labels = df[label_name]
     inputs = df.drop(columns=['file','label', 'emotion', 'face', 'valence'])
-    print(inputs.columns)
 
 
     pca = PCA(n_components=7)
@@ -134,18 +139,29 @@ def one_folder_split(path):
                                            'C_7'])
 
     #90/10
+    if label_name == 'valence':
+        stratify1 = None
+    else:
+        stratify1 = labels
     X, X_test, y, y_test = train_test_split(pca_df, 
                                             labels, 
                                             test_size=0.1, 
-                                            stratify=labels)
+                                            stratify=stratify1
+                                            )
+    
+    if label_name == 'valence':
+        stratify2 = None
+    else:
+        stratify2 = y
 
     train_x, val_x, train_y, val_y = train_test_split(X, 
                                                       y, 
                                                       test_size=(0.2/0.9), 
-                                                      stratify=y)
+                                                      stratify=stratify2
+                                                      )
     return train_x, val_x, train_y, val_y, X_test, y_test, pca
 
-def train_model(path='', 
+def train_model_classification(path='', 
                 only_diff = True, 
                 feature_sel = 'pca'):
     """
@@ -158,16 +174,41 @@ def train_model(path='',
     Only used for training on DiffusionFER, states the path tp the images or both if full and cropped images should be used.
     only_diff - True if only train on DiffusionFER, False if train on both DiffusionFER and MultiEmoVA
     feature_sel - ['pca', 'val'], only relevant if training on both MultiEmoVA and DiffusionFER. 
+    label_name . ['label', 'valence'], either predefined label (positive, negative, neutral) or continous variable valence
     States if dimension reductions should be done with pca or feature selection from valence calculations (see feature_sel).
 
     """
     models = []
 
     if only_diff:
-        train_x, val_x, train_y, val_y, X_test, y_test, pca = split_train_test_diff(path)
+        train_x, val_x, train_y, val_y, X_test, y_test, pca = split_train_test_diff(path, 'label')
     else:
         train_x, val_x, train_y, val_y, X_test, y_test, pca = both_datasets(feature_sel)
 
+    
+    knn_model = KNeighborsClassifier()
+
+    param_grid_knn = {
+    'n_neighbors': [65, 70, 72, 77, 78, 80],
+    'weights': ['uniform', 'distance'],
+    'p': [1, 2]
+    }
+
+    CV_knn = GridSearchCV(
+    estimator=knn_model,
+    param_grid=param_grid_knn,
+    cv=5,
+    verbose=2
+    )
+    CV_knn.fit(train_x, train_y)
+
+    # Get the validation accuracy
+    knn_best = CV_knn.best_estimator_
+    knn_pred = knn_best.predict(val_x)
+    acc_knn = accuracy_score(val_y, knn_pred)
+    models.append([acc_knn, knn_best, X_test, y_test, pca])
+
+    
     model_qda = skl_da.QuadraticDiscriminantAnalysis()
 
     #Gridsearch to tune regularisation parameter, reg_param
@@ -189,6 +230,7 @@ def train_model(path='',
     qda_best = CV_qda.best_estimator_
     qda_pred = qda_best.predict(val_x)
 
+
     acc_qda = accuracy_score(val_y, qda_pred)
     models.append([acc_qda, qda_best, X_test, y_test, pca])
 
@@ -208,13 +250,75 @@ def train_model(path='',
     svm_best = CV_svm.best_estimator_
     svm_pred = svm_best.predict(val_x)
     acc_svm = accuracy_score(val_y, svm_pred)
+
     models.append([acc_svm, svm_best, X_test, y_test, pca])
 
     # Return best model
     best_model = max(models, key=lambda x: x[0])
     return best_model
 
-if __name__ == "__main__":
+def train_model_regression(path=''):
+    """
+    This is the main function which preforms the training of the model when predicting valence. 
+    It calls the above function for splitting into train, val and testset.
+    It returns an array with the following values: [validation accuracy, best model, X_test, y_test, pca]
+    
+    Arguments:
+    path - ["./processed/Diffusion/cropped/", "./processed/Diffusion/original/", 'both']. 
+    States the path tp the images or both if full and cropped images should be used.
+
+    """
+    models = []
+
+    train_x, val_x, train_y, val_y, X_test, y_test, pca = split_train_test_diff(path, 'valence')
+
+    boost = GradientBoostingRegressor()
+
+    # Define the hyperparameter grid for grid search
+    param_grid_boost = {
+        'n_estimators': [50, 100, 500],
+        'learning_rate': [0.001, 0.01, 0.1],
+        'max_depth': [3, 5]
+    }
+
+    # Perform Grid Search with Cross-Validation
+    CV_boost = GridSearchCV(estimator=boost, 
+                            param_grid=param_grid_boost, 
+                            cv=5,
+                            verbose = 2)
+    CV_boost.fit(train_x,train_y)
+
+    # Get the validation accuracy
+    boost_best = CV_boost.best_estimator_
+    boost_pred = boost_best.predict(val_x)
+    mse_boost = mean_squared_error(val_y, boost_pred)
+
+    models.append([mse_boost, boost_best, X_test, y_test, pca])
+
+    #cv is used to finetune and compare models
+    param_grid_svm = [
+        {"kernel":['linear', 'poly', 'rbf', 'sigmoid']},
+        {"kernel": ["poly"], "degree":range(1,6)}
+    ]
+
+    CV_svm = GridSearchCV(svm.SVR(), 
+                            param_grid = param_grid_svm,
+                            cv=5,
+                            verbose = 2)
+    CV_svm.fit(train_x,train_y)
+
+    # Get the validation accuracy
+    svm_best = CV_svm.best_estimator_
+    svm_pred = svm_best.predict(val_x)
+    mse_svm = mean_squared_error(val_y, svm_pred)
+
+    models.append([mse_svm, svm_best, X_test, y_test, pca])
+
+    # Return best model
+    best_model = min(models, key=lambda x: x[0])
+    return best_model
+
+def classification():
     """
     Trains model on
     - cropped DiffusionFER images
@@ -225,10 +329,10 @@ if __name__ == "__main__":
     Finds the model with the best validation accuracy, prints the test accuracy.
     Saves the model and pca model to './user_perception/model_train/'
     """
-    cropped = train_model("./processed/Diffusion/cropped/")
-    full = train_model("./processed/Diffusion/original/")
-    both = train_model('both')
-    both_data = train_model(only_diff=False)
+    cropped = train_model_classification("./processed/Diffusion/cropped/")
+    full = train_model_classification("./processed/Diffusion/original/")
+    both = train_model_classification('both')
+    both_data = train_model_classification(only_diff=False)
 
     cropped.append('cropped')
     full.append('full')
@@ -252,3 +356,43 @@ if __name__ == "__main__":
 
     dump(best_model[1], './user_perception/model_train/model.joblib') 
     dump(best_model[4], './user_perception/model_train/pca.joblib') 
+
+def regression():
+    """
+    Trains model on
+    - cropped DiffusionFER images
+    - original DiffusionFEr images
+    - both cropped and orginal DiffusionFER images
+    Predicts valence
+
+    Finds the model with the best validation accuracy, prints the test accuracy.
+    Saves the model and pca model to './user_perception/model_train/'
+    """
+    cropped = train_model_regression("./processed/Diffusion/cropped/")
+    full = train_model_regression("./processed/Diffusion/original/")
+    both = train_model_regression('both')
+
+    cropped.append('cropped')
+    full.append('full')
+    both.append('both')
+
+    all_models = [cropped,
+                  full, 
+                  both]
+
+    # Find the list with the maximum accuracy 
+    best_model = min(all_models, key=lambda x: x[0])
+    # Print the result
+    print("List with the minimum mse:", best_model[-1])
+
+    #get test accuracy
+    test_y = best_model[1].predict(best_model[2])
+    mse_test = mean_squared_error(best_model[3], test_y)
+    print('test mse', mse_test)
+
+    #dump(best_model[1], './user_perception/model_train/model.joblib') 
+    #dump(best_model[4], './user_perception/model_train/pca.joblib') 
+
+
+if __name__ == "__main__":
+    classification()
