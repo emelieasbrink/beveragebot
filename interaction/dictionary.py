@@ -58,6 +58,9 @@ def create_keywords_dict():
     keywords['good'].append('.*\\b'+'yummy'+'\\b.*')
     keywords['good'].append('.*\\b'+'nice'+'\\b.*')
     keywords['good'].append('.*\\b'+'tasty'+'\\b.*')
+    keywords['good'].append('.*\\b'+'yes'+'\\b.*')
+    keywords['good'].append('.*\\b'+'thank you'+'\\b.*')
+    keywords['good'].append('.*\\b'+'thanks'+'\\b.*')
     for synonym in list(list_syn['good']):
         keywords['good'].append('.*\\b'+synonym+'\\b.*')
 
@@ -68,6 +71,8 @@ def create_keywords_dict():
     keywords['disgusting'].append('.*\\b'+'nasty'+'\\b.*')
     keywords['disgusting'].append('.*\\b'+'bad'+'\\b.*')
     keywords['disgusting'].append('.*\\b'+'gross'+'\\b.*')
+    keywords['disgusting'].append('.*\\b'+'no'+'\\b.*')
+    keywords['disgusting'].append('.*\\b'+'nope'+'\\b.*')
 
     keywords['joke']=[]
     for synonym in list(list_syn['joke']):
