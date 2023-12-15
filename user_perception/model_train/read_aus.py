@@ -16,9 +16,9 @@ def calculate_valence(df):
     
     joined_df.rename(columns={"label": "emotion"}, inplace=True)
     conditions = [
-        (joined_df['valence'] > 0.1),
-        (joined_df['valence'] < -0.1),
-        (joined_df['valence'] >= -0.1) & (joined_df['valence'] <= 0.1)]
+        (joined_df['valence'] > 0.2), #pos.
+        (joined_df['valence'] < 0), #neg. Changed bc showed almost no negative labels
+        (joined_df['valence'] >= 0.0) & (joined_df['valence'] <= 0.2)] #neutral 
     choices = ['positive', 'negative', 'neutral']
 
     joined_df['label'] = np.select(conditions, choices)
