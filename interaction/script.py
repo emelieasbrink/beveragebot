@@ -1,11 +1,11 @@
 from time import sleep
 from furhat_remote_api import FurhatRemoteAPI
-import dictionary as dict
-from gestures import create_gestures
+import interaction.dictionary as dict
+import interaction.gestures as ges
 import re
 import random
 
-FURHAT_IP = "130.243.218.200" # use 127.0.1.1 for Windows
+FURHAT_IP = "130.243.221.110" # use 127.0.1.1 for Windows
 
 
 furhat = FurhatRemoteAPI(FURHAT_IP)
@@ -83,7 +83,7 @@ def demo_bartender():
     set_persona('Marty')
     responses_dict = dict.create_responses()
     keywords_dict = dict.create_keywords_dict()
-    gestures = create_gestures()
+    gestures = ges.create_gestures()
     print('Beveragebot started!')
     bsay("Beveragebot activated, ready to serve")
     while(True):
