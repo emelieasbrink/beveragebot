@@ -6,6 +6,8 @@ from sklearn.metrics import accuracy_score
 from sklearn.decomposition import PCA
 from sklearn.ensemble import GradientBoostingClassifier
 
+from sklearn.ensemble import RandomForestClassifier
+
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.filterwarnings('ignore')
@@ -36,6 +38,14 @@ gb_parameters = {
     'min_samples_split': [2, 5, 10],
     'min_samples_leaf': [1, 2, 4]
 }
+
+#gb_parameters = {
+#    'n_estimators': [50, 100],
+#    'learning_rate': [0.01, 0.15],
+#    'max_depth': [3, 5],
+#    'min_samples_split': [2, 10],
+#    'min_samples_leaf': [2, 4]
+#}
 
 CV_gb = GridSearchCV(
     estimator=model_gb,
