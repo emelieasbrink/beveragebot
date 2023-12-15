@@ -8,8 +8,12 @@ from joblib import dump, load
 import time
 import pandas as pd
 
-clf = load('./user_perception/model_train_diff/model.joblib') 
-pca = load('./user_perception/model_train_diff/pca.joblib') 
+clf = load('./user_perception/model_train/model.joblib') 
+pca = load('./user_perception/model_train/pca.joblib') 
+
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+warnings.filterwarnings('ignore')
 
 def get_pred(frame):
     pred = 'neutral'
@@ -47,16 +51,16 @@ def video():
         elif key == ord(' '):  # SPACE key
             recording = not recording
 
-        get_pred(frame)
+        print(get_pred(frame))
 
         # Iterate through the face coordinates in the current frame
         #for face_coords, emotion in zip(face_coordinates, pred):
-            #x1, y1, x2, y2, confidence = face_coords
+        #    x1, y1, x2, y2, confidence = face_coords
         
             # Draw a rectangle around the detected face
             #cv2.putText(frame, emotion, (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         
-        #jcv2.imshow("video", frame)
+        jcv2.imshow("video", frame)
         
         #jcv2.imshow("video", frame)
 
