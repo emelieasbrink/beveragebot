@@ -12,6 +12,7 @@ import sklearn.discriminant_analysis as skl_da
 from joblib import dump, load
 from feature_sel import valence_plot
 from sklearn.metrics import mean_squared_error
+from sklearn.tree import DecisionTreeClassifier
 
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -189,11 +190,12 @@ def train_model_classification(path='',
     knn_model = KNeighborsClassifier()
 
     param_grid_knn = {
-    'n_neighbors': [65, 70, 72, 77, 78, 80],
+    'n_neighbors': [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25],
     'weights': ['uniform', 'distance'],
-    'p': [1, 2]
+    'p': [1, 2],
+    'algorithm': ['ball_tree', 'kd_tree', 'brute']
     }
-
+    
     CV_knn = GridSearchCV(
     estimator=knn_model,
     param_grid=param_grid_knn,
@@ -252,10 +254,58 @@ def train_model_classification(path='',
     acc_svm = accuracy_score(val_y, svm_pred)
 
     models.append([acc_svm, svm_best, X_test, y_test, pca])
+    
+    #decision tree classifier
+    CV_dtc= DecisionTreeClassifier()
+    
+    param_grid_dts={
+        'max_depth': [10,15], 
+        'max_features': ['sqrt', 'log2'],
+        'min_samples_split': [2, 5, 10],
+    }
+    clf_dts=GridSearchCV(
+    estimator=CV_dtc,
+    param_grid= param_grid_dts,
+    )
+    clf_dts.fit(train_x, train_y)
+    
+    #get validation 
+    dts_best = clf_dts.best_estimator_
+    dts_pred = dts_best.predict(val_x)
+    acc_dts = accuracy_score(val_y, dts_pred) ##lägg till denna 
+    
+    models.append([acc_dts, dts_best, X_test, y_test, pca])
+    
+    #random forest calssifier 
+    param_grid_rfc= {
+        'n_estimators': [50, 100, 200],
+        'max_depth': [10, 15],
+        'max_features': ['sqrt', 'log2'],
+        'min_samples_split': [2, 5, 10],
+    }
+    
+    rfc=RandomForestClassifier(
+    n_estimators=100, 
+    max_depth=10, 
+    random_state=0)
+    
+    grid_search_rfc = GridSearchCV(
+    rfc, 
+    param_grid_rfc)
+    grid_search_rfc.fit(train_x, train_y)
+    
+    rfc_best = clf_dts.best_estimator_
+    rfc_pred = rfc_best.predict(val_x)
+    acc_rfc = accuracy_score(val_y, rfc_pred) #lägg till 
+    
+    models.append([acc_rfc, rfc_best, X_test, y_test, pca])
+    
+
 
     # Return best model
     best_model = max(models, key=lambda x: x[0])
     return best_model
+
 
 def train_model_regression(path=''):
     """
@@ -294,6 +344,7 @@ def train_model_regression(path=''):
     mse_boost = mean_squared_error(val_y, boost_pred)
 
     models.append([mse_boost, boost_best, X_test, y_test, pca])
+    
 
     #cv is used to finetune and compare models
     param_grid_svm = [
