@@ -16,6 +16,8 @@ warnings.filterwarnings('ignore')
 BUT it takes about 10 minutes for it to run so maybe not the most efficient! Only trained on the full pictures."""
 
 df = read_aus_files('full')
+#df = read_aus_files('cropped')
+#df = read_aus_files('full')
 labels = df['label']
 inputs = df.drop(columns=['file', 'label'])
 
@@ -24,7 +26,7 @@ pca_df = pca.fit_transform(inputs)
 print(pca.explained_variance_ratio_.sum())
 pca_df = pd.DataFrame(pca_df, columns=['C_1', 'C_2', 'C_3', 'C_4', 'C_5', 'C_6', 'C_7'])
 
-# 90/10
+# 90/10 test split kanske ska 
 X, X_test, y, y_test = train_test_split(pca_df, labels, test_size=0.1, stratify=labels)
 
 # Gradient Boosting Classifier
@@ -61,4 +63,6 @@ gb_best = CV_gb.best_estimator_
 # Predictions and evaluation
 gb_pred = gb_best.predict(X_test)
 print('Gradient Boosting')
+print ('accuracy using 90/10 test train split')
+print ('accuracy using 90/10 test train split')
 print(np.mean(gb_pred == y_test))
