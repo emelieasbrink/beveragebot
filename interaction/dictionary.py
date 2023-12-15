@@ -58,6 +58,7 @@ def create_keywords_dict():
     keywords['good'].append('.*\\b'+'yummy'+'\\b.*')
     keywords['good'].append('.*\\b'+'nice'+'\\b.*')
     keywords['good'].append('.*\\b'+'tasty'+'\\b.*')
+    keywords['good'].append('.*\\b'+'yes'+'\\b.*')
     keywords['good'].append('.*\\b'+'thank you'+'\\b.*')
     keywords['good'].append('.*\\b'+'thanks'+'\\b.*')
     for synonym in list(list_syn['good']):
