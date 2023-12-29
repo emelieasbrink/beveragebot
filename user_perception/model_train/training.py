@@ -13,7 +13,7 @@ from joblib import dump, load
 from feature_sel import valence_plot
 from sklearn.metrics import mean_squared_error
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import  confusion_matrix, ConfusionMatrixDisplay 
 import seaborn as sns
 import matplotlib.pyplot as plt
 
@@ -326,16 +326,16 @@ def train_model_classification(path='',
     max_depth=10, 
     random_state=0)
     
-    grid_search_rfc = GridSearchCV(
-    rfc, 
-    param_grid_rfc)
-    grid_search_rfc.fit(train_x, train_y)
+    #grid_search_rfc = GridSearchCV(
+    #rfc, 
+    #param_grid_rfc)
+    #grid_search_rfc.fit(train_x, train_y)
     
-    rfc_best = clf_dts.best_estimator_
-    rfc_pred = rfc_best.predict(val_x)
-    acc_rfc = accuracy_score(val_y, rfc_pred) #lägg till 
+    #rfc_best = clf_dts.best_estimator_
+    #rfc_pred = rfc_best.predict(val_x)
+    #acc_rfc = accuracy_score(val_y, rfc_pred) #lägg till 
     
-    models.append([acc_rfc, rfc_best, X_test, y_test, pca])
+    #models.append([acc_rfc, rfc_best, X_test, y_test, pca])
 
     # Return best model
     best_model = max(models, key=lambda x: x[0])
@@ -413,20 +413,13 @@ def get_test_acuracy(model_info):
     print('test accuracy', acc_test)
 
     #create confusion matrix
-    cm = confusion_matrix(model_info[3], 
-                        test_y)
-    plt.figure(figsize=(8, 6))
-    sns.heatmap(cm, 
-                annot=True, 
-                cbar=False, 
-                xticklabels=set(model_info[3]), 
-                yticklabels=set(model_info[3]))
-    
-    plt.title('Confusion Matrix')
-    plt.xlabel('Predicted')
-    plt.ylabel('True')
+    cm = ConfusionMatrixDisplay.from_estimator(model_info[1], 
+                                          model_info[2], 
+                                          model_info[3])
 
     # Save the confusion matrix to a file
+    cm.plot()
+    plt.title('Confusion Matrix')
     plt.savefig('./user_perception/model_train/confusion_matrix.png')
 
     #save model
