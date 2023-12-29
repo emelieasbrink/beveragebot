@@ -3,7 +3,6 @@ import opencv_jupyter_ui as jcv2
 from feat import Detector
 from IPython.display import Image
 import numpy as np
-from user_perception.model_train.read_aus import prepare_features
 from joblib import dump, load
 import time
 import pandas as pd
@@ -14,6 +13,19 @@ pca = load('./user_perception/model_train/pca.joblib')
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.filterwarnings('ignore')
+
+def prepare_features(df, pca):
+    if pca is not None:
+        pca_df = pca.transform(df)
+        pca_df = pd.DataFrame(pca_df, columns=['C_1', 
+                                            'C_2', 
+                                            'C_3', 
+                                            'C_4', 
+                                            'C_5', 
+                                            'C_6',
+                                            'C_7'])
+        return pca_df
+    return df
 
 def get_pred(frame):
     pred = 'neutral'

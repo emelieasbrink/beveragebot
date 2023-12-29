@@ -18,10 +18,11 @@ def calculate_valence(df):
     conditions = [
         (joined_df['valence'] > 0.2), #pos.
         (joined_df['valence'] < 0), #neg. Changed bc showed almost no negative labels
-        (joined_df['valence'] >= 0.0) & (joined_df['valence'] <= 0.2)] #neutral 
+        (joined_df['valence'] >= 0) & (joined_df['valence'] <= 0.2)] #neutral 
     choices = ['positive', 'negative', 'neutral']
 
     joined_df['label'] = np.select(conditions, choices)
+    print('label dist', joined_df['label'].value_counts())
     columns_to_drop = ['subDirectory_filePath', 
                        'arousal', 
                        'expression', 
@@ -48,13 +49,3 @@ def read_both_datsets():
     df = pd.concat([diff_df, multi_df]).reset_index(drop=True)
     return df
 
-def prepare_features(df, pca):
-    pca_df = pca.transform(df)
-    pca_df = pd.DataFrame(pca_df, columns=['C_1', 
-                                           'C_2', 
-                                           'C_3', 
-                                           'C_4', 
-                                           'C_5', 
-                                           'C_6',
-                                           'C_7'])
-    return pca_df
