@@ -30,7 +30,7 @@ def prepare_features(df, pca):
 
 def get_pred(frame):
     """Based on the frame as input argument, this function classifies the emotion (postive, negative, neutral)
-    using pre-trained model and returns it"""
+    using pre-trained"""
     pred = 'neutral'
     detector = Detector(device="cpu")
     if (frame is not None):
