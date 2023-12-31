@@ -7,6 +7,7 @@ from user_perception.video_input import get_pred, video
 import cv2
 import opencv_jupyter_ui as jcv2
 from collections import Counter
+from time import sleep
 
 FURHAT_IP = "130.243.221.110" # use 127.0.1.1 for Windows
 
@@ -27,6 +28,7 @@ VOICES_NATIVE = {
 }
 
 def generate_frame_list(list,frame):
+    print('in here')
     if len(list)==3:
         list.pop(0)
         list.append(frame)
@@ -54,18 +56,25 @@ def demo_bartender2():
     gestures = create_gestures()
     print('Beveragebot started!')
     bsay("Beveragebot activated, ready to serve")
-    frame_list = []
+    #frame_list = []
+    count = 0
     while(True):
         check, frame = cam.read()
-        if (frame is not None):
-            frame_list = generate_frame_list(frame_list,frame)
+        count +=1
+        #if (frame is not None):
+        #    generate_frame_list(frame_list,
+        #                        frame)
         if not check:
             break
-        response = furhat.listen() 
-      # costumer_feeling = get_pred_from_frame_list(frame_list) 
-        costumer_feeling = get_pred(frame_list[-1])[0]
-        print(costumer_feeling)
-        generate_response(responses_dict,keywords_dict,response,costumer_feeling, gestures)
+        #wait until 10 frames have passed, then start listening
+        if (count == 10):
+            print('now')
+            response = furhat.listen() 
+            #costumer_feeling = get_pred_from_frame_list(frame_list) 
+            costumer_feeling = get_pred(frame)[0]
+            print(costumer_feeling)
+            generate_response(responses_dict,keywords_dict,response,costumer_feeling, gestures)
+            count = 0
 
 
 

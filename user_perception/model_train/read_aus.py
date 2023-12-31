@@ -5,6 +5,14 @@ import os
 import numpy as np
 
 def calculate_valence(df):
+    """
+    Creates a column label in the dataframe used from training based on the valence of the picture
+    The valence is read from the dataset_sheet file and using the following logic the labels are created:
+    valence > 0.2: positive
+    valence < 0: negative
+    valence >= 0 and valence <= 0.2 neutral
+    """
+
     path_datasheet = Path("./DiffusionFER/DiffusionEmotion_S/dataset_sheet.csv")
     df_valence = pd.read_csv(path_datasheet)
 
@@ -18,10 +26,11 @@ def calculate_valence(df):
     conditions = [
         (joined_df['valence'] > 0.2), #pos.
         (joined_df['valence'] < 0), #neg. Changed bc showed almost no negative labels
-        (joined_df['valence'] >= 0.0) & (joined_df['valence'] <= 0.2)] #neutral 
+        (joined_df['valence'] >= 0) & (joined_df['valence'] <= 0.2)] #neutral 
     choices = ['positive', 'negative', 'neutral']
 
     joined_df['label'] = np.select(conditions, choices)
+    print('label dist', joined_df['label'].value_counts())
     columns_to_drop = ['subDirectory_filePath', 
                        'arousal', 
                        'expression', 
@@ -30,6 +39,10 @@ def calculate_valence(df):
     return joined_df
 
 def read_aus_files(path):
+    """
+    Reads the csv files in the specified path and combines them. Returns a dataframe with all of the csv files in one.
+    The argument path takes one of the following values ["./processed/Diffusion/original/", ./processed/Diffusion/cropped/, ./processed/Multi/]
+    """
     all_aus = pd.DataFrame()
 
     for file in Path(path).iterdir():
@@ -41,6 +54,7 @@ def read_aus_files(path):
     return all_aus
 
 def read_both_datsets():
+    """Reads the processed files from both dataset DiffusionFER and MultiEmoVA and combines them into one dataframe which is returned"""
     diff_df = read_aus_files("./processed/Diffusion/original/")
     diff_df = calculate_valence(diff_df)
     multi_df = read_aus_files("./processed/Multi/")
@@ -48,13 +62,3 @@ def read_both_datsets():
     df = pd.concat([diff_df, multi_df]).reset_index(drop=True)
     return df
 
-def prepare_features(df, pca):
-    pca_df = pca.transform(df)
-    pca_df = pd.DataFrame(pca_df, columns=['C_1', 
-                                           'C_2', 
-                                           'C_3', 
-                                           'C_4', 
-                                           'C_5', 
-                                           'C_6',
-                                           'C_7'])
-    return pca_df
