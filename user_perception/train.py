@@ -1,4 +1,3 @@
-from feature_sel import read_aus_files
 from model_train.read_aus import read_aus_files, read_aus_files, calculate_valence, read_both_datsets
 import pandas as pd
 from sklearn.model_selection import train_test_split, GridSearchCV #, PredefinedSplit
@@ -11,7 +10,6 @@ from sklearn.model_selection import cross_val_score
 import numpy as np
 import warnings
 from sklearn.linear_model import LinearRegression
-from feature_sel import read_aus_files
 from sklearn.metrics import mean_squared_error
 from matplotlib.pylab import plt
 #from sklearn.feature_selection import VarianceThreshold
@@ -19,8 +17,8 @@ from matplotlib.pylab import plt
 warnings.filterwarnings('ignore')
 
 
-df_full = read_aus_files('full')
-df_cropped = read_aus_files('cropped')
+df_full = read_aus_files("./processed/Diffusion/original/")
+df_cropped = read_aus_files("./processed/Diffusion/cropped/")
 data=df_full
 
 emotion_mapping = {

@@ -321,21 +321,21 @@ def train_model_classification(path='',
         'min_samples_split': [2, 5, 10],
     }
     
-    #rfc=RandomForestClassifier(
-    #n_estimators=100, 
-    #max_depth=10, 
-    #random_state=0)
+    rfc=RandomForestClassifier(
+    n_estimators=100, 
+    max_depth=10, 
+    random_state=0)
     
-    #grid_search_rfc = GridSearchCV(
-    #rfc, 
-    #param_grid_rfc)
-    #grid_search_rfc.fit(train_x, train_y)
+    grid_search_rfc = GridSearchCV(
+    rfc, 
+    param_grid_rfc)
+    grid_search_rfc.fit(train_x, train_y)
     
-    #rfc_best = clf_dts.best_estimator_
-    #rfc_pred = rfc_best.predict(val_x)
-    #acc_rfc = accuracy_score(val_y, rfc_pred) #lägg till 
+    rfc_best = clf_dts.best_estimator_
+    rfc_pred = rfc_best.predict(val_x)
+    acc_rfc = accuracy_score(val_y, rfc_pred) #lägg till 
     
-    #models.append([acc_rfc, rfc_best, X_test, y_test, pca])
+    models.append([acc_rfc, rfc_best, X_test, y_test, pca])
 
     # Return best model
     best_model = max(models, key=lambda x: x[0])
