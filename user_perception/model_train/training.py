@@ -321,10 +321,10 @@ def train_model_classification(path='',
         'min_samples_split': [2, 5, 10],
     }
     
-    rfc=RandomForestClassifier(
-    n_estimators=100, 
-    max_depth=10, 
-    random_state=0)
+    #rfc=RandomForestClassifier(
+    #n_estimators=100, 
+    #max_depth=10, 
+    #random_state=0)
     
     #grid_search_rfc = GridSearchCV(
     #rfc, 
@@ -355,7 +355,7 @@ def train_model_regression(path=''):
     """
     models = []
 
-    train_x, val_x, train_y, val_y, X_test, y_test, pca = split_train_test_diff(path, 'valence')
+    train_x, val_x, train_y, val_y, X_test, y_test, pca = split_train_test_diff(path, 'valence', True)
 
     boost = GradientBoostingRegressor()
 

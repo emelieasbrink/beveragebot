@@ -1,5 +1,5 @@
 from feature_sel import read_aus_files
-from read_aus import read_aus_files, read_aus_files, calculate_valence, read_both_datsets
+from model_train.read_aus import read_aus_files, read_aus_files, calculate_valence, read_both_datsets
 import pandas as pd
 from sklearn.model_selection import train_test_split, GridSearchCV #, PredefinedSplit
 from sklearn.neighbors import KNeighborsClassifier
