@@ -23,13 +23,17 @@ def calculate_valence(df):
                         how='inner')
     
     joined_df.rename(columns={"label": "emotion"}, inplace=True)
+
+    #create label positive, negative or neutral from valence score
     conditions = [
         (joined_df['valence'] > 0.2), #pos.
         (joined_df['valence'] < 0), #neg. Changed bc showed almost no negative labels
         (joined_df['valence'] >= 0) & (joined_df['valence'] <= 0.2)] #neutral 
+
     choices = ['positive', 'negative', 'neutral']
 
     joined_df['label'] = np.select(conditions, choices)
+    #print how many images have each label
     print('label dist', joined_df['label'].value_counts())
     columns_to_drop = ['subDirectory_filePath', 
                        'arousal', 
@@ -45,6 +49,7 @@ def read_aus_files(path):
     """
     all_aus = pd.DataFrame()
 
+    #iterate through all files in path and save into one dataframe
     for file in Path(path).iterdir():
         if not file.is_file():
             continue

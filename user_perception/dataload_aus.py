@@ -38,9 +38,9 @@ def find_label_degree(degree):
     if 'positive' in degree.lower():
         return('positive')
     elif 'neutral' in degree.lower():
-        return('negative')
-    else:
         return('neutral')
+    else:
+        return('negative')
     
 def load_both_datasets(folder):
     """
@@ -62,7 +62,7 @@ def load_both_datasets(folder):
         load_data("./DiffusionFER/DiffusionEmotion_S/" + folder + '/', 
                 folder, 
                 True)
-        load_data("./MultiEmoVA/", Diff=False)
+        #load_data("./MultiEmoVA/", Diff=False)
     return
 
 def load_data(path_name,
@@ -78,8 +78,10 @@ def load_data(path_name,
     Diff - [True, False], default it True. States if the data is loaded from the diffusionFER dataset or not. 
     """
 
+    #save subfolders in path
     subfolders = [ f.name for f in os.scandir(path_name) if f.is_dir()]
 
+    #iterate through subfolders
     for emotion in subfolders:
         images = [[], []]
         image_names = []
@@ -90,12 +92,14 @@ def load_data(path_name,
             label = emotion
 
         path = path_name + emotion + '/'
+        #read image
         for file in Path(path).iterdir():
             if not file.is_file():
                 continue
             images[0].append(iio.imread(file))
             images[1].append(label)
         image_names = os.listdir(path)
+        #collect au from image
         make_pred(images, 
                   path, 
                   image_names, 
@@ -124,6 +128,7 @@ def make_pred(images,
     if not os.path.exists(Path(dir)):
         os.makedirs(Path(dir))
     
+    #iterate through images, detect face and aus
     for i in range(len(image_names)):
         label = images[1][i]
         file = [path + image_names[i]]
@@ -139,6 +144,7 @@ def make_pred(images,
                 df['file'] = image_names[i].replace(".jpg","",1)
                 df['face'] = index
                 df['label'] = label
+                #save aus to aus_df
                 aus_df = pd.concat([aus_df, df]).reset_index(drop=True)
             
                 if (i < 5):
@@ -156,6 +162,7 @@ def make_pred(images,
                                 (x + width, y + height), 
                                 (0, 255, 0), 2)  
 
+            #save test images to processed folder
             images_dir = "./processed/" + dataset + "/images/" 
 
             #save the test plots to processes/images
@@ -164,10 +171,10 @@ def make_pred(images,
             if (i < 5 and frame is not None):
                 iio.imwrite(Path(images_dir + image_names[i]), frame)
         
-
+    #save aus to processed file
     file_path_csv = "./processed/" + dataset + label + '_aus.csv'
     df_to_csv(aus_df, 
               Path(file_path_csv))
 
 if __name__ == "__main__":
-    load_data("./MultiEmoVA/", Diff=False)
+    load_both_datasets('all')

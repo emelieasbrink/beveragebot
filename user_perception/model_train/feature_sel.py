@@ -7,7 +7,7 @@ from read_aus import read_aus_files, calculate_valence, read_both_datsets
 
 def valence_plot(dataset):
     """
-    Creates a plot with calculating the abs difference in AUs from positive and negative valence. 
+    Creates a plot with calculating the abs difference in AUs from positive and negative labelled images. 
     The plot is saved in the processed file and it can be used for feature selection.
     Returns the AUs with more than 0.1 in difference. 
 
@@ -16,6 +16,7 @@ def valence_plot(dataset):
     States which dataset to be used for creating the plot (DiffusionFER, MultiEmoVA or both)
     """
 
+    #read data
     if dataset == 'both':
         df = read_both_datsets()
     elif dataset == "./processed/Diffusion/cropped/":
@@ -26,15 +27,9 @@ def valence_plot(dataset):
 
     au_columns = [col for col in df.columns if 'AU' in col]
     
-    #filt_neg = valence_df['valence'] < 0
-    #filt_pos = valence_df['valence'] > 0
+    #seperate positive and negative images
     filt_neg = df['label'] == 'negative'
     filt_pos = df['label'] == 'positive'
-
-    columns_to_drop = ['file', 
-                       'label',
-                       'valence',
-                       'face']
     neg_valence = df[filt_neg][au_columns]
     pos_valence = df[filt_pos][au_columns]
 
