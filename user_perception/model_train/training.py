@@ -24,6 +24,8 @@ warnings.filterwarnings('ignore')
 """This is the main file for training the model. The only function that needs to be called is the train_model function 
 which uses the other functions as help."""
 
+random_value = 130
+
 def both_datasets(feature_sel):
     """
     Read data from both DiffusionFER (full) and MultiEmoVA and split in train and test
@@ -32,9 +34,11 @@ def both_datasets(feature_sel):
     absolute difference in aus from positive and negative images (see feature_sel). 
     With None no feature selection is used. 
     """
+    #read data
     df = read_both_datsets()
     labels = df['label']
     pca = None
+    #do feature selection on features
     if feature_sel is not None:
         if feature_sel == 'val':
             features = valence_plot('both')
@@ -54,16 +58,19 @@ def both_datasets(feature_sel):
     else:
         inputs = df.drop(columns=['file','label', 'face', 'valence'])
         
-
+    #split data into 70/20/10
     X, X_test, y, y_test = train_test_split(inputs, 
                                             labels, 
                                             test_size=0.1, 
-                                            stratify=labels)
+                                            stratify=labels,
+                                            random_state=random_value)
 
     train_x, val_x, train_y, val_y = train_test_split(X, 
                                                       y, 
                                                       test_size=(0.2/0.9), 
-                                                      stratify=y)
+                                                      stratify=y,
+                                                      random_state=random_value)
+    #return train, validation and test set, and pca if exist
     if pca is not None:
         return train_x, val_x, train_y, val_y, X_test, y_test, pca
     else:
@@ -89,14 +96,17 @@ def both_cropped_and_full_split(label_name,
     label_name - column name of y data
     """
 
+    #read au files and define labels
     df_full = read_aus_files("./processed/Diffusion/original/")
     df_full = calculate_valence(df_full)
     df_cropped = read_aus_files("./processed/Diffusion/cropped/")
     df_cropped = calculate_valence(df_cropped)
 
+    #combine full and cropped images
     merged = pd.concat([df_full, df_cropped])
 
-
+    #if pca should be used create new features with pca, 
+    #else drop columns with should not be included when training the model
     if pca_bool:
         file = merged['file'].reset_index(drop=True)
         label = merged[label_name].reset_index(drop=True)
@@ -119,6 +129,7 @@ def both_cropped_and_full_split(label_name,
         names = merged['file'].unique()
     np.random.shuffle(names)
 
+    #split into train and test set, do this with the image_names to make sure that the same image does not end up in test and train set
     image_names, image_names_test = train_test_split(names, 
                                                     test_size=0.1,
                                                     shuffle=True)
@@ -137,6 +148,7 @@ def both_cropped_and_full_split(label_name,
     y_val = val_df['label']
     X_test = test_df.drop(columns=['file', 'label'])
     y_test = test_df['label']
+    #return the train, test and validation set, if pca was included return that as well
     if pca is not None:
         return X_train, X_val, y_train, y_val, X_test, y_test, pca
     else:
@@ -150,10 +162,16 @@ def one_folder_split(path,
     this function is used to split the data into train, val and test datasets (70/20/10).
     If argument pca_bool is True than pca is used as dimension reduction method. Otherwise no dimension reduction method is used. 
     """
+    #read au files and add labales
     df = read_aus_files(path)
     df = calculate_valence(df)
+
+    #split label and input features
     labels = df[label_name]
     inputs = df.drop(columns=['file','label', 'emotion', 'face', 'valence'])
+
+    #if pca should be used create new features with pca, 
+    #else drop columns with should not be included when training the model
     if pca_bool:
         pca = PCA(n_components=7)
         inputs = pca.fit_transform(inputs)
@@ -167,27 +185,34 @@ def one_folder_split(path,
     else:
         pca = None
 
-    #90/10
+    #if classification, make sure to stratify on labels to get even split
     if label_name == 'valence':
         stratify1 = None
     else:
         stratify1 = labels
+
+    #split data into train/test 90/10
     X, X_test, y, y_test = train_test_split(inputs, 
                                             labels, 
                                             test_size=0.1, 
-                                            stratify=stratify1
+                                            stratify=stratify1,
+                                            random_state=random_value
                                             )
     
+    #if classification, make sure to stratify on labels to get even split
     if label_name == 'valence':
         stratify2 = None
     else:
         stratify2 = y
 
+    #split data into train/validation/test 70/20/10
     train_x, val_x, train_y, val_y = train_test_split(X, 
                                                       y, 
                                                       test_size=(0.2/0.9), 
-                                                      stratify=stratify2
+                                                      stratify=stratify2,
+                                                      random_state=random_value
                                                       )
+    #return train, validation and test set, and pca if exists
     if pca is not None:
         return train_x, val_x, train_y, val_y, X_test, y_test, pca
     else:
@@ -212,6 +237,7 @@ def train_model_classification(path='',
     """
     models = []
 
+    #get the train, validation and test split
     if only_diff:
         pca_train_x, pca_val_x, pca_train_y, pca_val_y, pca_X_test, pca_y_test, pca = split_train_test_diff(path, 
                                                                                                             'label',
@@ -224,6 +250,7 @@ def train_model_classification(path='',
         pca_train_x, pca_val_x, pca_train_y, pca_val_y, pca_X_test, pca_y_test, pca = both_datasets(feature_sel)
 
     
+    #k nearest neighbors
     knn_model = KNeighborsClassifier()
 
     param_grid_knn = {
@@ -233,6 +260,7 @@ def train_model_classification(path='',
     'algorithm': ['ball_tree', 'kd_tree', 'brute']
     }
     
+    #grid search
     CV_knn = GridSearchCV(
     estimator=knn_model,
     param_grid=param_grid_knn,
@@ -245,18 +273,19 @@ def train_model_classification(path='',
     knn_best = CV_knn.best_estimator_
     knn_pred = knn_best.predict(pca_val_x)
     acc_knn = accuracy_score(pca_val_y, knn_pred)
+
+    #save model in list of models
     models.append([acc_knn, knn_best, pca_X_test, pca_y_test, pca])
 
-    
+    #QDA
     model_qda = skl_da.QuadraticDiscriminantAnalysis()
 
-    #Gridsearch to tune regularisation parameter, reg_param
+    #Gridsearch
     parameters = {
         'reg_param': (0.000001, 0.00001, 0.0001, 0.001, 0.01), 
         'store_covariance': (True, False),
         'tol': (0.00001, 0.001,0.01, 0.1), 
                         }
-    #63%
     CV_qda = GridSearchCV(
         estimator=model_qda,
         param_grid=parameters,
@@ -266,19 +295,21 @@ def train_model_classification(path='',
     )
     CV_qda.fit(pca_train_x,pca_train_y)
 
+    #get best estimator and validation accuracy
     qda_best = CV_qda.best_estimator_
     qda_pred = qda_best.predict(pca_val_x)
-
-
     acc_qda = accuracy_score(pca_val_y, qda_pred)
+
+    #save qda model to list
     models.append([acc_qda, qda_best, pca_X_test, pca_y_test, pca])
 
-    #cv is used to finetune and compare models
+    #svm 
     param_grid = [
         {"kernel":['linear', 'poly', 'rbf', 'sigmoid']},
         {"kernel": ["poly"], "degree":range(1,6)}
     ]
 
+    #grid search
     CV_svm = GridSearchCV(svm.SVC(probability=True), 
                             param_grid = param_grid,
                             cv=5,
@@ -290,6 +321,7 @@ def train_model_classification(path='',
     svm_pred = svm_best.predict(pca_val_x)
     acc_svm = accuracy_score(pca_val_y, svm_pred)
 
+    #save svm model to list
     models.append([acc_svm, svm_best, pca_X_test, pca_y_test, pca])
     
     #decision tree classifier
@@ -311,6 +343,7 @@ def train_model_classification(path='',
     dts_pred = dts_best.predict(val_x)
     acc_dts = accuracy_score(val_y, dts_pred) ##lägg till denna 
     
+    #save model to list
     models.append([acc_dts, dts_best, X_test, y_test, pca])
     
     #random forest calssifier 
@@ -323,7 +356,7 @@ def train_model_classification(path='',
     
     rfc=RandomForestClassifier(
     n_estimators=100, 
-    max_depth=10, 
+    max_depth=10,
     random_state=0)
     
     grid_search_rfc = GridSearchCV(
@@ -335,9 +368,10 @@ def train_model_classification(path='',
     rfc_pred = rfc_best.predict(val_x)
     acc_rfc = accuracy_score(val_y, rfc_pred) #lägg till 
     
+    #save random forest to list of models
     models.append([acc_rfc, rfc_best, X_test, y_test, pca])
 
-    # Return best model
+    # Return best model (model with highest validation accuracy)
     best_model = max(models, key=lambda x: x[0])
     return best_model
 
@@ -446,7 +480,10 @@ def classification():
 
     Finds the model with the best validation accuracy, prints the test accuracy.
     Saves the model and pca model to './user_perception/model_train/'
+
+    Note: regression is not used in the final model
     """
+    #train model on the different datasets
     cropped = train_model_classification("./processed/Diffusion/cropped/")
     full = train_model_classification("./processed/Diffusion/original/")
     both = train_model_classification('both')
@@ -461,15 +498,18 @@ def classification():
                   full, 
                   both,
                   both_data]
+    
 
-    # Find the list with the maximum accuracy 
+    # Find the model with the highestaccuracy 
     best_model = max(all_models, key=lambda x: x[0])
+
     # Print the result
     print("List with the maximum accuracy:", best_model[-1])
     print("the best model is", type(best_model[1]))
 
     print('best params are', best_model[1].get_params())
 
+    #return the final model
     return best_model
 
 
@@ -484,6 +524,8 @@ def regression():
     Finds the model with the best validation accuracy, prints the test accuracy.
     Saves the model and pca model to './user_perception/model_train/'
     """
+
+    #train model on the different datasets
     cropped = train_model_regression("./processed/Diffusion/cropped/")
     full = train_model_regression("./processed/Diffusion/original/")
     both = train_model_regression('both')
@@ -496,10 +538,11 @@ def regression():
                   full, 
                   both]
 
-    # Find the list with the least mse
+    # Find the model with the least mse
     best_model = min(all_models, key=lambda x: x[0])
     # Print the result
     print("List with the minimum mse:", best_model[-1])
+    #return best model
     return best_model
 
 if __name__ == "__main__":
