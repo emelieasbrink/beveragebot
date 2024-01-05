@@ -31,16 +31,29 @@ def prepare_features(df, pca):
 def get_pred(frame):
     """Based on the frame as input argument, this function classifies the emotion (postive, negative, neutral)
     using pre-trained"""
+
+
     pred = 'neutral'
     detector = Detector(device="cpu")
+
     if (frame is not None):
+        #detect face in frame
         detected_faces = detector.detect_faces(frame)
+
+        #detect landmarks in frame
         detected_landmarks = detector.detect_landmarks(frame, detected_faces)
+
+        #get aus from frame and landmarks
         aus = detector.detect_aus(frame, detected_landmarks)
+
         aus_face = aus[0]
         if (len(aus_face) > 0):
+
+            #transform features with pca
             aus_face_reshape = pd.DataFrame(aus_face[0].reshape(1, -1))
             input = prepare_features(aus_face_reshape, pca)
+
+            #predict emotion based on pre-trained model
             pred = clf.predict(input)
     return pred
 
@@ -48,9 +61,10 @@ def get_pred(frame):
 def video():
     """Test function to see the live classification on yourself.
     Starts the web camera and classifies the emotion based on the pre-trained model"""
+
+    #start video cam
     cam = cv2.VideoCapture(0)
     cam.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-    recording = False
 
     while True:
         # check = True means we managed to get a frame.
@@ -59,27 +73,18 @@ def video():
         if not check:
             break
 
-        # OpenCV uses a separate window to display output.
-
         # Press ESC to exit.
         key = jcv2.waitKey(1) & 0xFF
         if key == 27:
             break
         elif key == ord(' '):  # SPACE key
             recording = not recording
-
-        print(get_pred(frame))
-
-        # Iterate through the face coordinates in the current frame
-        #for face_coords, emotion in zip(face_coordinates, pred):
-        #    x1, y1, x2, y2, confidence = face_coords
         
-            # Draw a rectangle around the detected face
-            #cv2.putText(frame, emotion, (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-        
+        #show video
         jcv2.imshow("video", frame)
-        
-        #jcv2.imshow("video", frame)
+
+        #print prediction
+        print(get_pred(frame))
 
     cam.release()
     jcv2.destroyAllWindows()
