@@ -16,6 +16,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import  confusion_matrix, ConfusionMatrixDisplay 
 import seaborn as sns
 import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
 
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -433,6 +434,24 @@ def train_model_regression(path=''):
     mse_svm = mean_squared_error(val_y, svm_pred)
 
     models.append([mse_svm, svm_best, X_test, y_test, pca])
+    
+    #linear regression 
+    linear_model = LinearRegression()
+    linear_model.fit(train_x, train_y)
+    
+    param_grid_linear = {'fit_intercept': [True, False]}
+    CV_linear = GridSearchCV(linear_model, 
+                                param_grid= param_grid_linear, 
+                                cv=2)
+    
+    
+    #get the validation accuracy
+    linear_best = CV_linear(train_x, train_y)
+    linear_pred = linear_best.predict(val_x)
+    mse_linear = mean_squared_error(val_y, linear_pred)
+    
+    models.append([mse_linear, linear_best, X_test, y_test, pca])
+    
 
     # Return best model
     best_model = min(models, key=lambda x: x[0])
