@@ -5,7 +5,7 @@ import interaction.gestures as ges
 import re
 import random
 
-FURHAT_IP = "130.243.221.110" # use 127.0.1.1 for Windows
+FURHAT_IP = "192.168.0.125" # use 127.0.1.1 for Windows
 
 
 furhat = FurhatRemoteAPI(FURHAT_IP)
@@ -35,8 +35,6 @@ def bsay(line):
 
 def set_gesture(emotion):
     furhat.gesture(name=emotion)
-
-
     
 def handle_emotional_state(): ##Detta ska kombineras me 
     return "positive"

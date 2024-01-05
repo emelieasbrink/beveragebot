@@ -1,16 +1,13 @@
 #Main script for running the project
 from furhat_remote_api import FurhatRemoteAPI
-from interaction.script import set_gesture,set_persona,bsay,handle_emotional_state,generate_response
+from interaction.script import set_persona,bsay,generate_response
 from interaction.gestures import create_gestures
 from interaction.dictionary import create_keywords_dict, create_responses
-from user_perception.video_input import get_pred, video
+from user_perception.video_input import get_pred
 import cv2
-import opencv_jupyter_ui as jcv2
 from collections import Counter
-from time import sleep
 
-FURHAT_IP = "130.243.221.110" # use 127.0.1.1 for Windows
-
+FURHAT_IP = "192.168.0.125" # use 127.0.1.1 for Windows
 
 furhat = FurhatRemoteAPI(FURHAT_IP)
 furhat.set_led(red=100, green=50, blue=50)
@@ -79,4 +76,5 @@ def demo_bartender2():
 
 
 if __name__ == '__main__':
+    print("hej")
     demo_bartender2()        
