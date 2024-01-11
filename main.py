@@ -76,5 +76,4 @@ def demo_bartender2():
 
 
 if __name__ == '__main__':
-    print("hej")
     demo_bartender2()        

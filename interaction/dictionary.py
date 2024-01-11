@@ -139,9 +139,9 @@ def create_responses():
         'negative_responses': ['Bye you negative person, Come back if you want another drink']
     },
     'good': {
-        'neutral_responses': ['Great! Give me a second and I will prepair your drink. Do you want anything else?'],
-        'positive_responses': ['Amazing, Keep that smile while I prepair your drink. Do you want anything else?'],
-        'negative_responses': ['Okey I will fix the drink staight away then. Do you want anything else? ']
+        'neutral_responses': ['Great! Give me a second and I will prepair your drink. Let me know if you want anything else or perhaps a joke while you wait.'],
+        'positive_responses': ['Amazing, Keep that smile while I prepair your drink. Let me know if you want anything else or perhaps a joke while you wait.'],
+        'negative_responses': ['Okey I will fix the drink staight away then. Let me know if you want anything else or perhaps a joke while you wait. ']
     },
     'disgusting': {
         'neutral_responses': ['Hmm okey. Do you have another drink preference?'],

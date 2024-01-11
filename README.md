@@ -7,7 +7,7 @@ To install the required packages run:
 To demo the bartender run:
 `python main.py` 
 
-**Before running file** Make sure that you set the correct ip adress in the main.py file and the interaction/script.py file. Also start furhat. 
+**Before running the main file** Make sure that you set the correct ip adress in the main.py file and the interaction/script.py file. Also start furhat. 
 
 **Note** To be able to run all files in this directory the DiffusionFER dataset and the MultiEmoVA dataset need to be added to the top folder. To demo the bartender this is not needed. 
 
@@ -19,7 +19,7 @@ The project consists of two subsystems: user perception and interaction which ha
 
 **Authors:** Viktoria Svensson, Johanna Dahl and Emelie Åsbrink
 
-The purpose of this system is to process real-time images and classify the facial expression as negative, positive or neutral. A machine learning model has been created for this which is saved in user_perception/model_train/model.joblib.
+The purpose of this system is to process images from the web camera and classify the facial expression as negative, positive or neutral. A machine learning model has been created for this which is saved in user_perception/model_train/model.joblib.
 
 The main files that creates this model are dataload_aus.py, read_aus.py and training.py. In dataload_aus.py the data is read and processed, creating csv files with action units for each image. This is saved then in the processed folder. To read the data into dataframes the read_aus.py file. This is also where the labels for the classification algorithms are created. The training of different models, saving the one with best accuracy is done in the training.py files.
 
@@ -83,6 +83,5 @@ Here you can find a more detailed overview of the directory structure.
     ├── landmarks.py                #reads DiffsionFER/cropped images and takes out landmarks. 
                                     Saves in processed folder. 
     ├── train_landmarks.py          #training model with landmarks, is not used in the final model
-    ├── train.py                    #file for training some different models, is not used in the final model
     ├── video_input.py              #test final model live with webcam 
 ├── main.py                         #integration of the two subsystems. This is the file to be run for testing the system. 
